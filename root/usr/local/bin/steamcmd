@@ -1,6 +1,18 @@
 #!/bin/sh -eu
 
-if [ ! -e "$HOME/.steam" ]; then
+if [ ! -d ~/Steam/steamcmd ]; then
+	mkdir -p ~/Steam/steamcmd/linux32 ~/Steam/steamcmd/linux64
+
+	cp /usr/local/lib/steam/steamcmd.sh ~/Steam/steamcmd
+	cp /usr/local/lib/steam/steamcmd  ~/Steam/steamcmd/linux32
+
+	ln -s ~/Steam/steamcmd/linux32/steamclient.so ~/Steam/steamcmd/steamservice.so
+
+	ln -s ~/Steam/steamcmd/linux32/steamclient.so ~/Steam/steamcmd/linux32/steamservice.so
+	ln -s ~/Steam/steamcmd/linux64/steamclient.so ~/Steam/steamcmd/linux64/steamservice.so
+fi
+
+if [ ! -d ~/.steam ]; then
 	mkdir -p ~/.steam/sdk32 ~/.steam/sdk64
 
 	ln -s ~/Steam ~/.steam/root
@@ -8,18 +20,6 @@ if [ ! -e "$HOME/.steam" ]; then
 
 	ln -s ~/Steam/steamcmd/linux32/steamclient.so ~/.steam/sdk32/steamclient.so
 	ln -s ~/Steam/steamcmd/linux64/steamclient.so ~/.steam/sdk64/steamclient.so
-fi
-
-if [ ! -e "$HOME/Steam/steamcmd" ]; then
-	mkdir -p ~/Steam/steamcmd/linux32 ~/Steam/steamcmd/linux64
-
-	cp /usr/local/lib/steam/steamcmd.sh ~/Steam/steamcmd
-	cp /usr/local/lib/steam/steamcmd    ~/Steam/steamcmd/linux32
-
-	ln -s ~/Steam/steamcmd/linux32/steamclient.so ~/Steam/steamcmd/steamservice.so
-
-	ln -s ~/Steam/steamcmd/linux32/steamclient.so ~/Steam/steamcmd/linux32/steamservice.so
-	ln -s ~/Steam/steamcmd/linux64/steamclient.so ~/Steam/steamcmd/linux64/steamservice.so
 fi
 
 exec ~/Steam/steamcmd/steamcmd.sh "$@"
