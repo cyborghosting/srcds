@@ -1,10 +1,8 @@
-#!/bin/sh -e
-
-set -u
+#!/bin/sh -eu
 
 export HOME=~steam
 
-s6-applyuidgid -U steamcmd +runscript /tmp/steamcmd_script.txt
+s6-setuidgid steam steamcmd +runscript /tmp/steamcmd_script.txt
 
 cd "${SRCDS_INSTALL_DIR}"
 
@@ -22,7 +20,7 @@ fi
 
 set +u
 
-exec s6-applyuidgid -U "$EXECUTABLE" \
+exec s6-setuidgid steam "$EXECUTABLE" \
     -autoupdate \
     -steam_dir ~/Steam/steamcmd \
     -steamcmd_script /tmp/steamcmd_script.txt \
@@ -44,4 +42,3 @@ exec s6-applyuidgid -U "$EXECUTABLE" \
     ${SRCDS_SECURITY_FLAG} \
     ${SRCDS_TOKEN:++sv_setsteamaccount "$SRCDS_TOKEN"} \
     ${SRCDS_ADDITIONAL_ARGS}
-

@@ -1,0 +1,45 @@
+#!/bin/sh -eu
+
+# Fix the UID and GID of the steam user if PUID or PGID are set.
+if [ -n "${PUID:-}" ]; then
+    usermod --non-unique --uid="$PUID" steam
+    chown --recursive "$PUID" ~steam
+fi
+if [ -n "${PGID:-}" ]; then
+    usermod --gid="$PGID" steam
+    groupmod --non-unique --gid="$PGID" steam
+    chgrp --recursive "$PGID" ~steam
+fi
+
+# Create the steamcmd directory if it does not exist.
+if [ ! -e "$SRCDS_INSTALL_DIR" ]; then
+    mkdir --parent "$SRCDS_INSTALL_DIR" 
+    chown --reference=~steam "$SRCDS_INSTALL_DIR"
+elif [ ! -d "$SRCDS_INSTALL_DIR" ]; then
+    >&2 echo "\"$SRCDS_INSTALL_DIR\" is not directory"
+    exit 1
+fi
+
+# Check if the steam user can access the SRCDS_INSTALL_DIR.
+if ! s6-setuidgid steam sh -c '[ -r "$SRCDS_INSTALL_DIR" ] && [ -w "$SRCDS_INSTALL_DIR" ] && [ -x "$SRCDS_INSTALL_DIR" ]'; then
+    >&2 echo "cannot access directory \"$SRCDS_INSTALL_DIR\""
+    exit 1
+fi
+
+# Check if the SRCDS_APP_ID is set.
+if [ -z "${SRCDS_APP_ID:-}" ]; then
+    >&2 echo "No SRCDS_APP_ID specified"
+    exit 1
+fi
+
+# Create the steamcmd script if it does not exist.
+if [ ! -f /tmp/steamcmd_script.txt ]; then
+    {
+        echo "@ShutdownOnFailedCommand 1";
+        echo "@NoPromptForPassword 1";
+        echo "force_install_dir ${SRCDS_INSTALL_DIR}";
+        echo "login anonymous";
+        echo "app_update ${SRCDS_APP_ID}${SRCDS_APP_BETA:+ -beta ${SRCDS_APP_BETA}}";
+        echo "quit";
+    } > /tmp/steamcmd_script.txt 
+fi

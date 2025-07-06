@@ -1,11 +1,8 @@
-#!/bin/sh
+#!/bin/sh -eu
 
-DOCKERHUB_TAG=cyborghosting/steamcmd
+DOCKERHUB_TAG=cyborghosting/srcds
 
-set -eu
-
-#docker build --pull --target=dependency --build-arg="CACHEBUST=$(date +%s)" "$(dirname "$0")"
 
 docker build --pull --tag="${DOCKERHUB_TAG}" "$(dirname "$0")"
 
-# docker push "${DOCKERHUB_TAG}"
+docker push "${DOCKERHUB_TAG}"

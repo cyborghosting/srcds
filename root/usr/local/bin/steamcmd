@@ -1,10 +1,13 @@
-#!/bin/sh -eu
+#!/bin/sh
+
+set -eu
 
 if [ ! -d ~/Steam/steamcmd ]; then
-	mkdir -p ~/Steam/steamcmd/linux32 ~/Steam/steamcmd/linux64
+	mkdir -p ~/Steam/steamcmd/linux32
+	mkdir -p ~/Steam/steamcmd/linux64
 
-	cp /usr/local/lib/steam/steamcmd.sh ~/Steam/steamcmd
-	cp /usr/local/lib/steam/steamcmd  ~/Steam/steamcmd/linux32
+	cp /opt/steamcmd/steamcmd.sh ~/Steam/steamcmd	
+	cp /opt/steamcmd/steamcmd    ~/Steam/steamcmd/linux32
 
 	ln -s ~/Steam/steamcmd/linux32/steamclient.so ~/Steam/steamcmd/steamservice.so
 
@@ -13,7 +16,8 @@ if [ ! -d ~/Steam/steamcmd ]; then
 fi
 
 if [ ! -d ~/.steam ]; then
-	mkdir -p ~/.steam/sdk32 ~/.steam/sdk64
+	mkdir -p ~/.steam/sdk32
+	mkdir -p ~/.steam/sdk64
 
 	ln -s ~/Steam ~/.steam/root
 	ln -s ~/Steam ~/.steam/steam

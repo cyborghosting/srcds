@@ -1,6 +1,0 @@
-#!/bin/sh -eu
-
-/etc/s6-overlay/s6-rc.d/prepare/scripts/fix_uid_gid.sh
-/etc/s6-overlay/s6-rc.d/prepare/scripts/check_install_directory.sh
-/etc/s6-overlay/s6-rc.d/prepare/scripts/create_steamcmd_script.sh
-
