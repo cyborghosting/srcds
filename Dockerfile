@@ -1,3 +1,5 @@
+# download SteamCMD
+
 FROM busybox:stable AS steamcmd
 
 ARG STEAMCMD_URL=https://cdn.akamai.steamstatic.com/client/installer/steamcmd_linux.tar.gz
@@ -9,21 +11,7 @@ RUN set -eux; \
     tar xzpf /tmp/steamcmd_linux.tar.gz -C /steamcmd
 
 
-FROM busybox:stable AS s6-overlay
-
-ARG S6_OVERLAY_VERSION=3.2.1.0
-ARG S6_OVERLAY_DOWNLOAD_URL=https://github.com/just-containers/s6-overlay/releases/download
-ARG S6_OVERLAY_NOARCH_CHECKSUM=sha256:42e038a9a00fc0fef70bf0bc42f625a9c14f8ecdfe77d4ad93281edf717e10c5
-ARG S6_OVERLAY_X86_64_CHECKSUM=sha256:8bcbc2cada58426f976b159dcc4e06cbb1454d5f39252b3bb0c778ccf71c9435
-
-ADD --checksum=$S6_OVERLAY_NOARCH_CHECKSUM ${S6_OVERLAY_DOWNLOAD_URL}/v${S6_OVERLAY_VERSION}/s6-overlay-noarch.tar.xz /tmp/s6-overlay-noarch.tar.xz
-ADD --checksum=$S6_OVERLAY_X86_64_CHECKSUM ${S6_OVERLAY_DOWNLOAD_URL}/v${S6_OVERLAY_VERSION}/s6-overlay-x86_64.tar.xz /tmp/s6-overlay-x86_64.tar.xz
-
-RUN set -eux; \
-    mkdir -p /s6-overlay; \
-    tar xJpf /tmp/s6-overlay-noarch.tar.xz -C /s6-overlay; \
-    tar xJpf /tmp/s6-overlay-x86_64.tar.xz -C /s6-overlay
-    
+# build healthcheck binary
 
 FROM golang:1.24 AS healthcheck
 
@@ -37,9 +25,51 @@ ADD healthcheck/*.go .
 RUN go build -o /healthcheck
 
 
-# Install packages and generate locales
+# list latest packages
+
+FROM debian:bookworm-slim AS packages
+
+ADD scripts/listpkgs.sh /
+
+ARG CACHEBUST=0
+
+ARG DEBIAN_FRONTEND=noninteractive
+RUN set -eux; \
+    # Add multiarch support \
+    dpkg --add-architecture i386; \
+    # Update APT cache \
+    apt-get update; \
+    /listpkgs.sh \
+        # C/C++ libraries \
+        lib32gcc-s1 \
+        lib32stdc++6 \
+        # bzip2 library \
+        libbz2-1.0 \
+        libbz2-1.0:i386 \
+        # curl library \
+        libcurl3-gnutls \
+        libcurl3-gnutls:i386 \
+        # ncurses library \
+        libncurses5 \
+        libncurses5:i386 \
+        # zlib library \
+        zlib1g \
+        lib32z1 \
+        # certificates \
+        ca-certificates \
+        # locales \
+        locales \
+        # init \
+        dumb-init \
+    | tee /packages.txt; \
+    rm -rf /var/lib/apt/lists/*
+
+
+# install packages and generate locales
 
 FROM debian:bookworm-slim
+
+COPY --from=packages /packages.txt /
 
 ARG DEBIAN_FRONTEND=noninteractive
 RUN set -eux; \
@@ -47,26 +77,7 @@ RUN set -eux; \
     dpkg --add-architecture i386; \
     # Install requirements \
     apt-get update; \
-    apt-get install --assume-yes --no-install-recommends --no-install-suggests \
-        # C/C++ libraries \
-        lib32gcc-s1=12.2.0-14+deb12u1 \
-        lib32stdc++6=12.2.0-14+deb12u1 \
-        # bzip2 library \
-        libbz2-1.0=1.0.8-5+b1 \
-        libbz2-1.0:i386=1.0.8-5+b1 \
-        # curl library \
-        libcurl3-gnutls=7.88.1-10+deb12u12 \
-        libcurl3-gnutls:i386=7.88.1-10+deb12u12 \
-        # ncurses library \
-        libncurses5=6.4-4 \
-        libncurses5:i386=6.4-4 \
-        # zlib library \
-        zlib1g=1:1.2.13.dfsg-1 \
-        lib32z1=1:1.2.13.dfsg-1 \
-        # certificates \
-        ca-certificates=20230311+deb12u1 \
-        # locales \
-        locales=2.36-9+deb12u10; \
+    xargs apt-get install --assume-yes --no-install-recommends --no-install-suggests < /packages.txt; \
     rm -rf /var/lib/apt/lists/*; \
     # Generate locales \
     { \
@@ -76,40 +87,43 @@ RUN set -eux; \
     locale-gen
 
 
-# Download and install steamcmd
+# install gosu
+
+COPY --from=tianon/gosu /gosu /usr/local/bin/gosu
+
+
+# install steamcmd
 
 RUN set -eux; \
     useradd --create-home --user-group steam
 
-COPY --from=steamcmd --link /steamcmd/steamcmd.sh /opt/steamcmd/
-COPY --from=steamcmd --link /steamcmd/linux32/steamcmd /opt/steamcmd/
-COPY root/usr/local/bin/steamcmd /usr/local/bin/steamcmd
+COPY --from=steamcmd /steamcmd/steamcmd.sh      /opt/steamcmd/steamcmd.sh
+COPY --from=steamcmd /steamcmd/linux32/steamcmd /opt/steamcmd/linux32/steamcmd
+COPY scripts/steamcmd /usr/local/bin/steamcmd
 
 
-# Copy s6-overlay and setup files
+# download and install shdotenv
 
-COPY --from=s6-overlay --link /s6-overlay /
-COPY root/etc/. /etc/
-ENTRYPOINT [ "/init" ]
+ARG SHDOTENV_URL=https://github.com/ko1nksm/shdotenv/releases/download/v0.14.0/shdotenv
+ARG SHDOTENV_CHECKSUM=sha256:efa1c0aa7d59331c0823e8a3a56066db6088094052b00dae63694e046985d29e
 
-ENV S6_KEEP_ENV=1
-ENV S6_BEHAVIOUR_IF_STAGE2_FAILS=2
-ENV S6_CMD_USE_TERMINAL=1
+ADD --chmod=755 --checksum=$SHDOTENV_CHECKSUM $SHDOTENV_URL /usr/local/bin/shdotenv
 
-# Install shdotenv and run script
 
-ADD --chmod=755 https://github.com/ko1nksm/shdotenv/releases/latest/download/shdotenv /usr/local/bin/shdotenv
-ADD run.sh /run.sh
+# install run script
+
+ADD scripts/run.sh /run.sh
+ENTRYPOINT ["/usr/bin/dumb-init", "--"]
 CMD [ "/run.sh" ]
 
 
-# Install healthcheck
+# install healthcheck
 
 COPY --chown=root:root --chmod=755 --from=healthcheck /healthcheck /healthcheck
 HEALTHCHECK --interval=10s --retries=6 CMD [ "/healthcheck" ]
 
 
-# Environment variables
+# environment variables
 
 ENV PUID=
 ENV PGID=

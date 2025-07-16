@@ -1,0 +1,27 @@
+#!/bin/sh -eu
+
+if [ ! -d ~/Steam/steamcmd ]; then
+    mkdir -p ~/Steam/steamcmd/linux32 \
+             ~/Steam/steamcmd/linux64
+
+    cp /opt/steamcmd/steamcmd.sh      ~/Steam/steamcmd
+    cp /opt/steamcmd/linux32/steamcmd ~/Steam/steamcmd/linux32
+
+    ln -s ~/Steam/steamcmd/linux32/steamclient.so ~/Steam/steamcmd/steamservice.so
+
+    ln -s ~/Steam/steamcmd/linux32/steamclient.so ~/Steam/steamcmd/linux32/steamservice.so
+    ln -s ~/Steam/steamcmd/linux64/steamclient.so ~/Steam/steamcmd/linux64/steamservice.so
+fi
+
+if [ ! -d ~/.steam ]; then
+    mkdir -p ~/.steam/sdk32 \
+             ~/.steam/sdk64
+
+    ln -s ~/Steam ~/.steam/root
+    ln -s ~/Steam ~/.steam/steam
+
+    ln -s ~/Steam/steamcmd/linux32/steamclient.so ~/.steam/sdk32/steamclient.so
+    ln -s ~/Steam/steamcmd/linux64/steamclient.so ~/.steam/sdk64/steamclient.so
+fi
+
+exec ~/Steam/steamcmd/steamcmd.sh "$@"
