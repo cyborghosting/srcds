@@ -1,7 +1,7 @@
 #!/bin/sh -eu
 
 get_version ( ) {
-	apt-cache policy "$1" | grep 'Candidate:' | head -1 | sed -e 's/^  Candidate: \(.\+\)/\1/'
+	apt-cache --pkg-cache "pkgcache.bin" show "$1" | grep 'Version:' | head -1 | sed -e 's/^Version: \(.\+\)/\1/'
 }
 
 for package in "$@"; do

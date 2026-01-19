@@ -84,7 +84,8 @@ RUN set -eux; \
         echo 'C.UTF-8 UTF-8'; \
         echo 'en_US.UTF-8 UTF-8'; \
     } > /etc/locale.gen; \
-    locale-gen
+    locale-gen; \
+    update-locale LANG=en_US.UTF-8
 
 
 # install gosu
@@ -124,6 +125,8 @@ HEALTHCHECK --interval=10s --retries=6 CMD [ "/healthcheck" ]
 
 
 # environment variables
+
+ENV LANG=en_US.UTF-8
 
 ENV PUID=
 ENV PGID=

@@ -1,15 +1,15 @@
 #!/bin/sh -eu
 
 # Fix the UID and GID of the steam user if PUID or PGID are set.
-if [ -n "${PUID:-}" ]; then
+if [ -n "${PUID}" ] && [ "${PUID}" != "$(id -u steam)" ]; then
     usermod --non-unique --uid="$PUID" steam
-    chown --recursive "$PUID" ~steam
 fi
-if [ -n "${PGID:-}" ]; then
+if [ -n "${PGID}" ] && [ "${PGID}" != "$(id -g steam)" ]; then
     usermod --gid="$PGID" steam
     groupmod --non-unique --gid="$PGID" steam
-    chgrp --recursive "$PGID" ~steam
 fi
+
+chown --recursive steam:steam ~steam
 
 # Create the srcds directory if it does not exist.
 if [ ! -e "$SRCDS_INSTALL_DIR" ]; then
@@ -39,7 +39,11 @@ if [ ! -f /tmp/steamcmd_script.txt ]; then
         echo "@NoPromptForPassword 1";
         echo "force_install_dir ${SRCDS_INSTALL_DIR}";
         echo "login anonymous";
-        echo "app_update ${SRCDS_APP_ID}${SRCDS_APP_BETA:+ -beta ${SRCDS_APP_BETA}}";
+	if [ -z "${SRCDS_VALIDATE:-}" ]; then
+            echo "app_update ${SRCDS_APP_ID}${SRCDS_APP_BETA:+ -beta ${SRCDS_APP_BETA}}";
+        else
+            echo "app_update ${SRCDS_APP_ID}${SRCDS_APP_BETA:+ -beta ${SRCDS_APP_BETA}} validate";
+        fi
         echo "quit";
     } > /tmp/steamcmd_script.txt
 fi
