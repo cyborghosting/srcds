@@ -1,28 +1,34 @@
 #!/bin/sh
 set -eu
 
-if [ ! -d ~/Steam/steamcmd ]; then
-  mkdir -p ~/Steam/steamcmd/linux32
-  mkdir -p ~/Steam/steamcmd/linux64
-
-  cp /opt/steamcmd/steamcmd.sh      ~/Steam/steamcmd
-  cp /opt/steamcmd/linux32/steamcmd ~/Steam/steamcmd/linux32
-
-  ln -s ~/Steam/steamcmd/linux32/steamclient.so ~/Steam/steamcmd/steamservice.so
-
-  ln -s ~/Steam/steamcmd/linux32/steamclient.so ~/Steam/steamcmd/linux32/steamservice.so
-  ln -s ~/Steam/steamcmd/linux64/steamclient.so ~/Steam/steamcmd/linux64/steamservice.so
+if [ ! -e ~/.local/share/Steam ]; then
+  mkdir -p ~/.local/share/Steam/appcache/
+  mkdir -p ~/.local/share/Steam/config/
+  mkdir -p ~/.local/share/Steam/logs/
+  mkdir -p ~/.local/share/Steam/steamapps/common/
 fi
 
-if [ ! -d ~/.steam ]; then
-  mkdir -p ~/.steam/sdk32
-  mkdir -p ~/.steam/sdk64
-
-  ln -s ~/Steam ~/.steam/root
-  ln -s ~/Steam ~/.steam/steam
-
-  ln -s ~/Steam/steamcmd/linux32/steamclient.so ~/.steam/sdk32/steamclient.so
-  ln -s ~/Steam/steamcmd/linux64/steamclient.so ~/.steam/sdk64/steamclient.so
+if [ ! -e ~/.local/share/Steam/steamcmd ]; then
+  mkdir -p ~/.local/share/Steam/steamcmd/linux32/
+  mkdir -p ~/.local/share/Steam/steamcmd/linux64/
+  cp /opt/steamcmd/steamcmd.sh      ~/.local/share/Steam/steamcmd/steamcmd.sh
+  cp /opt/steamcmd/linux32/steamcmd ~/.local/share/Steam/steamcmd/linux32/steamcmd
+  ln -s ~/.local/share/Steam/steamcmd/linux32/steamclient.so ~/.local/share/Steam/steamcmd/steamservice.so
+  ln -s ~/.local/share/Steam/steamcmd/linux32/steamclient.so ~/.local/share/Steam/steamcmd/linux32/steamservice.so
+  ln -s ~/.local/share/Steam/steamcmd/linux64/steamclient.so ~/.local/share/Steam/steamcmd/linux64/steamservice.so
 fi
 
-exec ~/Steam/steamcmd/steamcmd.sh "$@"
+if [ ! -e ~/Steam ]; then
+  ln -s ~/.local/share/Steam ~/Steam
+fi
+
+if [ ! -e ~/.steam ]; then
+  mkdir -p ~/.steam/sdk32/
+  mkdir -p ~/.steam/sdk64/
+  ln -s ~/.local/share/Steam ~/.steam/root
+  ln -s ~/.local/share/Steam ~/.steam/steam
+  ln -s ~/.local/share/Steam/steamcmd/linux32/steamclient.so ~/.steam/sdk32/steamclient.so
+  ln -s ~/.local/share/Steam/steamcmd/linux64/steamclient.so ~/.steam/sdk64/steamclient.so
+fi
+
+exec ~/.local/share/Steam/steamcmd/steamcmd.sh "$@"

@@ -65,7 +65,7 @@ set +u
 
 exec gosu steam "$EXECUTABLE" \
   -autoupdate \
-  -steam_dir ~steam/Steam/steamcmd \
+  -steam_dir ~steam/.local/share/Steam/steamcmd \
   -steamcmd_script /tmp/steamcmd_script.txt \
   -pidfile "$SRCDS_PID_FILE" \
   ${SRCDS_GAME:+-game "$SRCDS_GAME"} \
