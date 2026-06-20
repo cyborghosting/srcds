@@ -27,19 +27,25 @@ RUN go build -o /healthcheck
 
 # list latest packages
 
-FROM debian:bookworm-slim AS packages
-
-ADD scripts/listpkgs.sh /
+FROM debian:bookworm-slim AS package-requirements
 
 ARG CACHEBUST=0
 
 ARG DEBIAN_FRONTEND=noninteractive
 RUN set -eux; \
+    list_packages() { \
+        for package in "$@"; do \
+            version="$(apt-cache --pkg-cache '/tmp/pkgcache.bin' policy "$package" | \
+                grep 'Candidate:' | \
+                awk '{print $2}')"; \
+            printf '%s=%s\n' "$package" "$version"; \
+        done; \
+    }; \
     # Add multiarch support \
     dpkg --add-architecture i386; \
     # Update APT cache \
     apt-get update; \
-    /listpkgs.sh \
+    list_packages \
         # C/C++ libraries \
         lib32gcc-s1 \
         lib32stdc++6 \
@@ -60,8 +66,8 @@ RUN set -eux; \
         # locales \
         locales \
         # init \
-        dumb-init \
-    | tee /packages.txt; \
+        dumb-init | \
+    tee /package-requirements.list; \
     rm -rf /var/lib/apt/lists/*
 
 
@@ -69,7 +75,7 @@ RUN set -eux; \
 
 FROM debian:bookworm-slim
 
-COPY --from=packages /packages.txt /
+COPY --from=package-requirements /package-requirements.list /
 
 ARG DEBIAN_FRONTEND=noninteractive
 RUN set -eux; \
@@ -77,7 +83,7 @@ RUN set -eux; \
     dpkg --add-architecture i386; \
     # Install requirements \
     apt-get update; \
-    xargs apt-get install --assume-yes --no-install-recommends --no-install-suggests < /packages.txt; \
+    xargs apt-get install --assume-yes --no-install-recommends --no-install-suggests < /package-requirements.list; \
     rm -rf /var/lib/apt/lists/*; \
     # Generate locales \
     { \
