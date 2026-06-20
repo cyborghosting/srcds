@@ -12,7 +12,13 @@ import (
 )
 
 func main() {
-	port, ok := os.LookupEnv("SRCDS_PORT")
+	port, ok := "", false
+	if !ok {
+		port, ok = os.LookupEnv("SRCDS_STEAMPORT")
+	}
+	if !ok {
+		port, ok = os.LookupEnv("SRCDS_PORT")
+	}
 	if !ok {
 		log.Print("environment variable 'SRCDS_PORT' not specified")
 		os.Exit(0)

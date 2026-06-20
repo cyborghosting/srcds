@@ -77,6 +77,7 @@ exec gosu steam "$EXECUTABLE" \
   ${SRCDS_TIMEOUT:+-timeout "$SRCDS_TIMEOUT"} \
   ${SRCDS_IP:+-ip "$SRCDS_IP"} \
   ${SRCDS_PORT:+-port "$SRCDS_PORT"} \
+  ${SRCDS_STEAMPORT:+-steamport "$SRCDS_STEAMPORT"} \
   ${SRCDS_CLIENTPORT:++clientport "$SRCDS_CLIENTPORT"} \
   ${SRCDS_HOSTPORT:++hostport "$SRCDS_HOSTPORT"} \
   ${SRCDS_TV_PORT:++tv_port "$SRCDS_TV_PORT"} \
