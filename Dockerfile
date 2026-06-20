@@ -47,8 +47,10 @@ RUN set -eux; \
     apt-get update; \
     list_packages \
         # C/C++ libraries \
-        lib32gcc-s1 \
-        lib32stdc++6 \
+        libgcc-s1 \
+        libgcc-s1:i386 \
+        libstdc++6 \
+        libstdc++6:i386 \
         # bzip2 library \
         libbz2-1.0 \
         libbz2-1.0:i386 \
@@ -60,7 +62,7 @@ RUN set -eux; \
         libncurses5:i386 \
         # zlib library \
         zlib1g \
-        lib32z1 \
+        zlib1g:i386 \
         # certificates \
         ca-certificates \
         # locales \
