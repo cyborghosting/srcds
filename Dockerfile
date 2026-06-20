@@ -80,7 +80,8 @@ FROM debian:bookworm-slim
 COPY --from=package-requirements /package-requirements.list /
 
 ARG DEBIAN_FRONTEND=noninteractive
-RUN set -eux; \
+RUN --mount=from=package-requirements,target=/package-requirements.list,source=/package-requirements.list \
+    set -eux; \
     # Add multiarch support \
     dpkg --add-architecture i386; \
     # Install requirements \
