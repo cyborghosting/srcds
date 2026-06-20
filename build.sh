@@ -1,8 +1,8 @@
-#!/bin/sh -eu
+#!/bin/sh
+set -eu
 
-DOCKERHUB_TAG=cyborghosting/srcds
+IMAGE_NAME=cyborghosting/srcds
 
-
-docker build --pull --tag="${DOCKERHUB_TAG}" "$(dirname "$0")" --build-arg=CACHEBUST=$(date '+%s.%N') # --progress=plain
-
-docker push "${DOCKERHUB_TAG}"
+docker build . --pull \
+  --build-arg=CACHEBUST="$(date '+%s.%N')" \
+  --tag="$IMAGE_NAME"
