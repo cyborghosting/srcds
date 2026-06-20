@@ -13,7 +13,7 @@ RUN set -eux; \
 
 # build healthcheck binary
 
-FROM golang:1.24 AS healthcheck
+FROM golang:1.26 AS healthcheck
 
 WORKDIR /app
 
