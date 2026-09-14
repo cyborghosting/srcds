@@ -57,9 +57,6 @@ RUN set -eux; \
         # curl library \
         libcurl3-gnutls \
         libcurl3-gnutls:i386 \
-        # ncurses library \
-        libncurses5 \
-        libncurses5:i386 \
         # zlib library \
         zlib1g \
         zlib1g:i386 \
@@ -92,10 +89,9 @@ RUN --mount=from=package-requirements,target=/package-requirements.list,source=/
     { \
         echo 'C.UTF-8 UTF-8'; \
         echo 'en_US.UTF-8 UTF-8'; \
-        echo 'en_GB.UTF-8 UTF-8'; \
     } > /etc/locale.gen; \
     locale-gen; \
-    update-locale LANG=en_US.UTF-8 LC_MEASUREMENT=en_GB.UTF-8
+    update-locale LANG=en_US.UTF-8 LC_ALL=C.UTF-8
 
 
 # install gosu
@@ -135,6 +131,10 @@ HEALTHCHECK --interval=10s --retries=6 CMD [ "/healthcheck" ]
 
 
 # environment variables
+
+ENV LANG=en_US.UTF-8
+ENV LANGUAGE=en_US:en
+ENV LC_ALL=C.UTF-8
 
 ENV PUID=
 ENV PGID=
