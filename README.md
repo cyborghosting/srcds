@@ -192,7 +192,7 @@ Note: The health check relies on `SRCDS_PORT` (default: 27015) and `SRCDS_PID_FI
 
 ## Contributing
 
-Contributions are welcome! Please open issues or pull requests on [GitHub](https://github.com/cyborg-hosting/srcds).
+Contributions are welcome! Please open issues or pull requests on [GitHub](https://github.com/cyborghosting/srcds).
 
 ## License
 

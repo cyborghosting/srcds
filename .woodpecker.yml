@@ -1,0 +1,29 @@
+steps:
+  publish-image:
+    image: woodpeckerci/plugin-docker-buildx:6
+    settings:
+      repo: cyborghosting/srcds
+      auto_tag: true
+      default_tag: latest
+
+      default_labels: false
+      provenance: "false"
+
+      cache_images:
+        - cyborghosting/srcds:buildcache
+
+      build_args:
+        - "CACHEBUST=${CI_PIPELINE_NUMBER}"
+        - "SOURCE_DATE_EPOCH=0"
+
+      username:
+        from_secret: docker_username
+      password:
+        from_secret: docker_password
+
+when:
+  event:
+    - push
+    - tag
+    - cron
+    - manual
