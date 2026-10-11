@@ -9,7 +9,7 @@ steps:
       cache_images:
         - cyborghosting/srcds:buildcache
       build_args:
-        CACHEBUST: ${CI_PIPELINE_STARTED}
+        CACHEBUST: "${CI_PIPELINE_STARTED}"
       username:
         from_secret: docker_username
       password:
