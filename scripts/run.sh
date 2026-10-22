@@ -33,6 +33,17 @@ if [ -z "${SRCDS_APP_ID:-}" ]; then
   exit 1
 fi
 
+# Remove incomplete app manifests after validating the install directory.
+find "$SRCDS_INSTALL_DIR" -type f -name 'appmanifest_*.acf' -exec sh -ec '
+  for file do
+    stateflags="$(sed -n "s/^[[:space:]]*\"StateFlags\"[[:space:]]*\"\([^\"]*\)\"[[:space:]]*$/\1/p" "$file")"
+    if [ "$stateflags" != "4" ]; then
+      printf "Removing %s... (StateFlags: %s)\n" "$file" "$stateflags"
+      rm -- "$file"
+    fi
+  done
+' sh {} +
+
 # Create the steamcmd script if it does not exist.
 if [ ! -f /tmp/steamcmd_script.txt ]; then
   {
