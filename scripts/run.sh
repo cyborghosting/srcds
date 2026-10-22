@@ -1,6 +1,16 @@
 #!/bin/sh
 set -eu
 
+find "$SRCDS_INSTALL_DIR" -type f -name 'appmanifest_*.acf' -exec sh -c '
+  for file do
+    stateflags="$(cat "$file" | grep StateFlags | grep -o "[0-9]\+")"
+    if [ "$stateflags" -ne 4 ]; then
+      printf "Removing %s... (StateFlags: %s)" "$file" "$stateflags"
+      rm "$file"
+    fi
+  done
+' sh {} +
+
 # Fix the UID and GID of the steam user if PUID or PGID are set.
 if [ -n "${PUID}" ] && [ "${PUID}" != "$(id -u steam)" ]; then
   usermod --non-unique --uid="$PUID" steam
